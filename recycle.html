@@ -1,0 +1,263 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Morgan County AI Recycling Helper</title>
+    <!-- Load Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Placeholder for TensorFlow.js and Teachable Machine Libraries -->
+    <!-- Students will uncomment and use these once their model is trained -->
+    <!-- <script src="https://cdn.jsdelivr.net/npm/@tensorflow/tfjs@1.3.1/dist/tf.min.js"></script> -->
+    <!-- <script src="https://cdn.jsdelivr.net/npm/@teachablemachine/image@0.8/dist/teachablemachine-image.min.js"></script> -->
+    
+    <style>
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: #e5f5f7; /* Light municipal blue-green */
+        }
+        .card {
+            background-color: white;
+            box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
+        }
+        /* Style for the video feed and prediction output */
+        #webcam-container, #image-preview {
+            max-width: 100%;
+            height: 240px;
+            object-fit: contain;
+            background-color: #f3f4f6;
+            border-radius: 0.5rem;
+            margin: 1rem 0;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            overflow: hidden;
+        }
+    </style>
+</head>
+<body class="p-4 md:p-8 flex justify-center">
+
+    <div class="container mx-auto max-w-2xl card rounded-xl p-6 md:p-8">
+
+        <!-- Header -->
+        <header class="text-center mb-8">
+            <h1 class="text-3xl md:text-4xl font-extrabold text-teal-700 leading-tight">
+                Morgan County Recycling Helper
+            </h1>
+            <p class="text-lg text-gray-600 mt-2">
+                Use AI to classify your waste as Recyclable or Trash.
+            </p>
+        </header>
+
+        <!-- Input Section -->
+        <div class="space-y-6">
+            
+            <h2 class="text-xl font-semibold text-gray-700 border-b pb-2 mb-4">1. Provide an Image</h2>
+
+            <!-- Camera Input -->
+            <div id="camera-section">
+                <button onclick="toggleWebcam()" class="w-full bg-blue-600 hover:bg-blue-700 text-white font-bold py-3 px-4 rounded-lg transition duration-150 ease-in-out">
+                    <span id="camera-button-text">Open Camera</span>
+                </button>
+                <div id="webcam-container" class="hidden">
+                    <video id="webcam-video" autoplay playsinline style="width: 100%; height: 100%;"></video>
+                </div>
+                <button id="take-photo-button" onclick="takeSnapshot()" class="hidden w-full bg-green-500 hover:bg-green-600 text-white font-bold py-2 mt-3 rounded-lg">
+                    Take Photo
+                </button>
+            </div>
+
+            <div class="text-center text-gray-500 font-semibold my-4">-- OR --</div>
+
+            <!-- File Upload -->
+            <div class="flex flex-col items-center">
+                <label for="image-upload" class="cursor-pointer bg-gray-200 hover:bg-gray-300 text-gray-800 font-bold py-3 px-6 rounded-lg transition duration-150 ease-in-out w-full text-center">
+                    Upload Photo from Device
+                </label>
+                <input type="file" id="image-upload" accept="image/*" class="hidden" onchange="handleFileUpload(event)">
+            </div>
+        </div>
+
+        <!-- Image Preview & Prediction Button -->
+        <div class="mt-8 pt-4 border-t">
+            <h2 class="text-xl font-semibold text-gray-700 border-b pb-2 mb-4">2. Preview & Predict</h2>
+            
+            <img id="image-preview" class="w-full" alt="Image Preview" style="display: none;">
+            
+            <button id="predict-button" onclick="predict()" class="hidden w-full bg-teal-600 hover:bg-teal-700 text-white font-bold py-3 px-4 rounded-lg mt-4 transition duration-150 ease-in-out">
+                Analyze Item!
+            </button>
+        </div>
+
+
+        <!-- Results Section -->
+        <div class="mt-8 pt-4 border-t" id="results-section">
+            <h2 class="text-xl font-semibold text-gray-700 border-b pb-2 mb-4">3. AI Prediction</h2>
+            
+            <div id="prediction-output" class="text-center p-6 rounded-lg font-bold text-2xl text-gray-800 bg-gray-100">
+                Awaiting Analysis...
+            </div>
+            
+            <div id="recycling-info" class="mt-4 p-4 text-sm text-gray-600 border rounded-lg" style="display: none;">
+                <!-- Detailed info will appear here -->
+            </div>
+        </div>
+
+    </div>
+
+    <script>
+        const webcamContainer = document.getElementById('webcam-container');
+        const webcamVideo = document.getElementById('webcam-video');
+        const takePhotoButton = document.getElementById('take-photo-button');
+        const cameraButtonText = document.getElementById('camera-button-text');
+        const imagePreview = document.getElementById('image-preview');
+        const predictButton = document.getElementById('predict-button');
+        const predictionOutput = document.getElementById('prediction-output');
+        const recyclingInfo = document.getElementById('recycling-info');
+
+        let isWebcamActive = false;
+        let stream = null;
+        let capturedImageBlob = null;
+        
+        // --- STUDENT TODO: INTEGRATE MODEL HERE ---
+        // const URL = "YOUR_TEACHABLE_MACHINE_MODEL_URL/";
+        // let model, maxPredictions;
+        
+        // async function initModel() {
+        //     const modelURL = URL + "model.json";
+        //     const metadataURL = URL + "metadata.json";
+        //     model = await tmImage.load(modelURL, metadataURL);
+        //     maxPredictions = model.getTotalClasses();
+        //     console.log("Teachable Machine Model Loaded!");
+        // }
+        
+        // This function simulates the prediction until the real model is loaded.
+        function getSimulatedPrediction() {
+            // Placeholder logic: 
+            const classes = [
+                { class: 'Recyclable (Plastic Bottle)', info: 'Great! Plastic bottles (1s and 2s) are accepted in Morgan County single-stream recycling. Please rinse and replace the cap!' },
+                { class: 'Trash (Food Waste/Contaminant)', info: 'This item is NOT accepted in local recycling. Food waste contaminates the entire batch. Please dispose of this in your regular trash bin.' },
+                { class: 'Recyclable (Cardboard)', info: 'Yes! Flattened, clean cardboard is recyclable. Note: Greasy pizza boxes often belong in the trash!' }
+            ];
+            
+            // Randomly pick one result for simulation
+            const randomIndex = Math.floor(Math.random() * classes.length);
+            return classes[randomIndex];
+        }
+
+        async function predict() {
+            predictButton.disabled = true;
+            predictionOutput.innerHTML = "Analyzing...";
+            predictionOutput.className = "text-center p-6 rounded-lg font-bold text-2xl bg-yellow-200 text-gray-800";
+            recyclingInfo.style.display = 'none';
+            
+            // --- STUDENT TODO: REPLACE THIS SECTION WITH REAL MODEL PREDICTION ---
+            
+            // SIMULATION: Wait a moment to simulate AI processing time
+            await new Promise(resolve => setTimeout(resolve, 1500)); 
+            
+            const simulatedResult = getSimulatedPrediction();
+            const resultText = simulatedResult.class;
+            const resultInfo = simulatedResult.info;
+            
+            // Check if the result is Recyclable or Trash for styling
+            if (resultText.startsWith('Recyclable')) {
+                predictionOutput.className = "text-center p-6 rounded-lg font-bold text-3xl bg-green-200 text-green-800";
+                predictionOutput.innerHTML = `✅ ${resultText}`;
+            } else {
+                predictionOutput.className = "text-center p-6 rounded-lg font-bold text-3xl bg-red-200 text-red-800";
+                predictionOutput.innerHTML = `❌ ${resultText}`;
+            }
+
+            recyclingInfo.innerHTML = `**Local Morgan County Guidelines:** ${resultInfo}`;
+            recyclingInfo.style.display = 'block';
+            
+            // --- END OF STUDENT TODO SECTION ---
+            
+            predictButton.disabled = false;
+        }
+
+        // --- CAMERA AND FILE HANDLERS ---
+
+        // Toggles the webcam on or off
+        async function toggleWebcam() {
+            if (isWebcamActive) {
+                // Stop webcam
+                if (stream) {
+                    stream.getTracks().forEach(track => track.stop());
+                }
+                webcamContainer.classList.add('hidden');
+                takePhotoButton.classList.add('hidden');
+                cameraButtonText.textContent = "Open Camera";
+                isWebcamActive = false;
+                stream = null;
+            } else {
+                // Start webcam
+                try {
+                    stream = await navigator.mediaDevices.getUserMedia({ video: true });
+                    webcamVideo.srcObject = stream;
+                    webcamContainer.classList.remove('hidden');
+                    takePhotoButton.classList.remove('hidden');
+                    cameraButtonText.textContent = "Close Camera";
+                    isWebcamActive = true;
+                    // Hide any previous file upload preview
+                    imagePreview.style.display = 'none';
+                    predictButton.classList.add('hidden');
+                } catch (err) {
+                    alert('Error accessing camera: ' + err.message);
+                }
+            }
+        }
+
+        // Takes a snapshot from the video stream
+        function takeSnapshot() {
+            const canvas = document.createElement('canvas');
+            canvas.width = webcamVideo.videoWidth;
+            canvas.height = webcamVideo.videoHeight;
+            const ctx = canvas.getContext('2d');
+            ctx.drawImage(webcamVideo, 0, 0, canvas.width, canvas.height);
+
+            // Convert canvas to image and display
+            canvas.toBlob((blob) => {
+                capturedImageBlob = blob;
+                const imageUrl = URL.createObjectURL(blob);
+                displayImage(imageUrl);
+                // Stop webcam after taking photo
+                toggleWebcam(); 
+            }, 'image/jpeg');
+        }
+
+        // Handles image file upload
+        function handleFileUpload(event) {
+            const file = event.target.files[0];
+            if (file) {
+                const reader = new FileReader();
+                reader.onload = (e) => {
+                    displayImage(e.target.result);
+                };
+                reader.readAsDataURL(file);
+                // Ensure webcam is off
+                if (isWebcamActive) {
+                    toggleWebcam(); 
+                }
+            }
+        }
+
+        // Displays the provided image URL in the preview area
+        function displayImage(imageUrl) {
+            imagePreview.src = imageUrl;
+            imagePreview.style.display = 'block';
+            predictButton.classList.remove('hidden');
+            
+            // Clear previous prediction output
+            predictionOutput.innerHTML = "Awaiting Analysis...";
+            predictionOutput.className = "text-center p-6 rounded-lg font-bold text-2xl text-gray-800 bg-gray-100";
+            recyclingInfo.style.display = 'none';
+        }
+
+        // Initialize model (uncomment when integrating TM)
+        // window.onload = initModel;
+
+    </script>
+</body>
+</html>
