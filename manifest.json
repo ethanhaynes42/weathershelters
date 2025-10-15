@@ -8,12 +8,12 @@
   "theme_color": "#1e90ff",
   "icons": [
     {
-      "src": "icon-192.png",
+      "src": "https://chatgpt.com/backend-api/estuary/content?id=file_00000000bb6c61f58fccae2f4482b0bc&ts=489040&p=fs&cid=1&sig=41e19db7bd1e2f04f719ea1690027830f170d8ef804e3e64a2ba261f3e8b639e&v=0",
       "sizes": "192x192",
       "type": "image/png"
     },
     {
-      "src": "icon-512.png",
+      "src": "https://chatgpt.com/backend-api/estuary/content?id=file_00000000bb6c61f58fccae2f4482b0bc&ts=489040&p=fs&cid=1&sig=41e19db7bd1e2f04f719ea1690027830f170d8ef804e3e64a2ba261f3e8b639e&v=0",
       "sizes": "512x512",
       "type": "image/png"
     }
