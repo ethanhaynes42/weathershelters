@@ -73,7 +73,7 @@
         function getUserLocationAndSort() {
             const statusMessage = document.getElementById('location-status');
             const button = document.getElementById('sort-by-location-btn');
-           
+            
             if (!navigator.geolocation) {
                 statusMessage.textContent = 'Geolocation is not supported by your browser.';
                 statusMessage.classList.remove('hidden');
@@ -92,7 +92,7 @@
                     lat: position.coords.latitude,
                     lng: position.coords.longitude
                 };
-               
+                
                 statusMessage.textContent = 'Location found! Shelters sorted by distance.';
                 statusMessage.classList.remove('text-blue-500', 'text-red-500');
                 statusMessage.classList.add('text-green-600');
@@ -156,7 +156,7 @@
                         shelter.lat, shelter.lng
                     );
                 });
-               
+                
                 // Sort by distance (ascending)
                 filteredShelters.sort((a, b) => a.distance - b.distance);
             } else {
@@ -180,6 +180,7 @@
             container.style.gridTemplateColumns = '';
 
             filteredShelters.forEach(shelter => {
+                // Corrected map link generation for Google Maps search
                 const mapLink = `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(`${shelter.address}, ${shelter.city}, AL ${shelter.zip}`)}`;
 
                 // Determine color based on category
@@ -189,9 +190,9 @@
                 if (shelter.category === 'VFD') categoryColor = 'bg-green-100 text-green-800 border-green-600';
                 if (shelter.category === 'Community') categoryColor = 'bg-purple-100 text-purple-800 border-purple-600';
 
-                // Display distance if available
+                // Display distance if available - using a simple emoji for the clock
                 const distanceDisplay = shelter.distance !== undefined ?
-                    `<p class="mt-2 text-md font-extrabold text-gray-900"><span class="text-green-600">&#9200;</span> ${shelter.distance.toFixed(1)} miles away</p>` :
+                    `<p class="mt-2 text-md font-extrabold text-gray-900"><span class="text-green-600">⏱️</span> ${shelter.distance.toFixed(1)} miles away</p>` :
                     '';
 
 
@@ -234,10 +235,10 @@
             const searchInput = document.getElementById('search-input');
             const cityFilter = document.getElementById('city-filter');
             const locationButton = document.getElementById('sort-by-location-btn');
-           
+            
             // Populate City Filter options dynamically
             const cities = [...new Set(shelterData.map(s => s.city))].sort();
-           
+            
             // Add 'All Cities' option explicitly first
             const allOption = document.createElement('option');
             allOption.value = 'all cities';
@@ -268,7 +269,7 @@
 
     <div class="max-w-7xl mx-auto">
         <!-- Header -->
-        <header class="text-center mb-10 p-6 bg-white rounded-2xl shadow-xl border-b-4 border-red-600">
+        <header class="text-center mb-6 p-6 bg-white rounded-2xl shadow-xl border-b-4 border-red-600">
             <h1 class="text-4xl sm:text-5xl font-extrabold text-gray-800">Morgan County Area Emergency Shelters</h1>
             <p class="mt-2 text-lg text-red-600 font-semibold">A vital resource for Hartselle and surrounding communities.</p>
             <p class="mt-4 text-sm text-gray-600 max-w-2xl mx-auto">
@@ -276,9 +277,23 @@
             </p>
         </header>
 
+        <!-- Teachable Machine Project Link -->
+        <div class="mb-8">
+            <div class="bg-indigo-700 p-5 rounded-2xl shadow-xl flex flex-col sm:flex-row items-center justify-between space-y-3 sm:space-y-0">
+                <p class="text-white text-lg font-semibold text-center sm:text-left">
+                    Explore our weather project:
+                </p>
+                <!-- Using a placeholder URL for the Teachable Machine demo -->
+                <a href="https://teachablemachine.withgoogle.com/train/image" target="_blank" class="w-full sm:w-auto inline-flex items-center justify-center px-6 py-3 border border-transparent text-base font-bold rounded-xl shadow-lg text-indigo-700 bg-white hover:bg-gray-100 transition duration-150 ease-in-out">
+                    <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19V6l-2 2M15 19V6l2 2m-6 0h4"></path></svg>
+                    View Teachable Machine Demo
+                </a>
+            </div>
+        </div>
+
         <!-- Search and Filter Controls -->
         <div class="bg-white p-6 rounded-xl shadow-lg mb-8 grid grid-cols-1 md:grid-cols-5 gap-4 items-center">
-           
+            
             <div class="md:col-span-2">
                 <label for="search-input" class="sr-only">Search Shelters</label>
                 <input type="text" id="search-input" placeholder="Search by name, road, or city..." class="w-full p-3 border border-gray-300 rounded-xl focus:ring-red-500 focus:border-red-500 shadow-sm text-gray-700" />
@@ -319,3 +334,4 @@
 
 </body>
 </html>
+
