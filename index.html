@@ -23,6 +23,18 @@
             transform: translateY(-3px);
             box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
         }
+        /* Custom styling for the radar iframe container */
+        .radar-container {
+            width: 100%;
+            height: 500px; /* Default height */
+            /* Responsive adjustment for height on small screens */
+            max-height: 70vh; 
+        }
+        /* Adjust iframe for full container size */
+        .radar-container iframe {
+            width: 100%;
+            height: 100%;
+        }
     </style>
     <script>
         // Data containing all shelter information with approximate geographical coordinates (Lat/Lng)
@@ -284,13 +296,33 @@
                     Unsure about if you need a shelter click here
                 </p>
                 <!-- Using a placeholder URL for the Teachable Machine demo -->
-                <a href="https://teachablemachine.withgoogle.com/models/e3tc2ZOoJ/" target="_blank" class="w-full sm:w-auto inline-flex items-center justify-center px-6 py-3 border border-transparent text-base font-bold rounded-xl shadow-lg text-indigo-700 bg-white hover:bg-gray-100 transition duration-150 ease-in-out">
+                <a href="https://teachablemachine.withgoogle.com/train/image" target="_blank" class="w-full sm:w-auto inline-flex items-center justify-center px-6 py-3 border border-transparent text-base font-bold rounded-xl shadow-lg text-indigo-700 bg-white hover:bg-gray-100 transition duration-150 ease-in-out">
                     <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19V6l-2 2M15 19V6l2 2m-6 0h4"></path></svg>
                     Check Now
                 </a>
             </div>
         </div>
 
+        <!-- Live Weather Radar Section -->
+        <div class="mb-8 p-6 bg-white rounded-2xl shadow-xl border-t-4 border-blue-600">
+            <h2 class="text-2xl font-extrabold text-gray-800 mb-4 flex items-center">
+                <svg class="w-6 h-6 mr-2 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 10h18M3 14h18m-9-4v8m-7 0h14a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v8a2 2 0 002 2z"></path></svg>
+                Morgan County Live Weather Radar
+            </h2>
+            <p class="text-sm text-gray-600 mb-3">
+                This is a live radar view centered on North Alabama. Use this to track storms.
+                **Note:** Radar data is provided by the National Weather Service (NWS) and may take a moment to load.
+            </p>
+            <div class="radar-container rounded-xl overflow-hidden shadow-inner border border-gray-300">
+                <!-- Using the NWS Huntsville (KHTX) radar with a map-only view for best embedding stability -->
+                <iframe 
+                    src="https://radar.weather.gov/station/KHTX/standard" 
+                    frameborder="0" 
+                    allowfullscreen>
+                </iframe>
+            </div>
+        </div>
+        
         <!-- Search and Filter Controls -->
         <div class="bg-white p-6 rounded-xl shadow-lg mb-8 grid grid-cols-1 md:grid-cols-5 gap-4 items-center">
             
@@ -331,6 +363,10 @@
 
         </footer>
     </div>
+
+</body>
+</html>
+
 
 </body>
 </html>
