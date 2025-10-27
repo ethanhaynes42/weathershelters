@@ -21,7 +21,7 @@
         }
         .shelter-card:hover {
             transform: translateY(-3px);
-            box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
+            box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 4, 0, 0.05);
         }
         /* Custom styling for the radar iframe container */
         .radar-container {
@@ -35,6 +35,29 @@
             width: 100%;
             height: 100%;
         }
+        /* Style for custom message box */
+        #custom-message-box {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            z-index: 1000;
+            padding: 1rem;
+            border-radius: 0.75rem;
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -2px rgba(0, 0, 0, 0.1);
+            max-width: 90%;
+            min-width: 250px;
+            display: none;
+            opacity: 0;
+            transition: opacity 0.3s ease-in-out;
+        }
+        #custom-message-box.show {
+            display: block;
+            opacity: 1;
+        }
+        .message-success { background-color: #d1fae5; color: #065f46; border: 1px solid #34d399; }
+        .message-error { background-color: #fee2e2; color: #991b1b; border: 1px solid #f87171; }
+        .message-warning { background-color: #fffbeb; color: #92400e; border: 1px solid #fcd34d; }
+
     </style>
     <script>
         // Data containing all shelter information with approximate geographical coordinates (Lat/Lng)
@@ -95,7 +118,7 @@
             // Disable button and show loading status
             button.disabled = true;
             statusMessage.textContent = 'Finding your location...';
-            statusMessage.classList.remove('hidden', 'text-red-500', 'text-green-600');
+            statusMessage.classList.remove('hidden', 'text-red-500', 'text-green-600', 'text-red-500');
             statusMessage.classList.add('text-blue-500');
 
             navigator.geolocation.getCurrentPosition((position) => {
@@ -136,6 +159,20 @@
             });
         }
 
+        // Function to display a custom message box instead of alert()
+        function alertMessage(message, type = 'success') {
+            const box = document.getElementById('custom-message-box');
+            const content = document.getElementById('message-content');
+            
+            box.className = 'message-box'; // Reset classes
+            box.classList.add('show', `message-${type}`);
+            content.textContent = message;
+            
+            // Hide after 4 seconds
+            setTimeout(() => {
+                box.classList.remove('show');
+            }, 4000);
+        }
 
         // Function to render the shelter cards based on search/filter/location
         function renderShelters(filters = {}) {
@@ -242,7 +279,7 @@
              renderShelters(filters);
         }
 
-        // Setup for filtering and searching
+        // Setup for filtering and searching. This will be called after Firebase auth is ready.
         function setupFilters() {
             const searchInput = document.getElementById('search-input');
             const cityFilter = document.getElementById('city-filter');
@@ -273,11 +310,14 @@
             applyFilters();
         }
 
-        // Call setup on window load
-        window.onload = setupFilters;
     </script>
 </head>
 <body class="p-4 sm:p-8">
+
+    <!-- Custom message box for alerts -->
+    <div id="custom-message-box" class="hidden" role="alert">
+        <p id="message-content" class="font-medium"></p>
+    </div>
 
     <div class="max-w-7xl mx-auto">
         <!-- Header -->
@@ -289,16 +329,16 @@
             </p>
         </header>
 
-        <!-- Teachable Machine Project Link -->
+        <!-- Emergency Planning Link (Replaces former TM link) -->
         <div class="mb-8">
             <div class="bg-indigo-700 p-5 rounded-2xl shadow-xl flex flex-col sm:flex-row items-center justify-between space-y-3 sm:space-y-0">
                 <p class="text-white text-lg font-semibold text-center sm:text-left">
-                    Unsure about if you need a shelter click here
+                    Always be prepared. View essential storm safety and emergency planning resources.
                 </p>
-                <!-- Using a placeholder URL for the Teachable Machine demo -->
-                <a href="https://teachablemachine.withgoogle.com/models/e3tc2ZOoJ/" target="_blank" class="w-full sm:w-auto inline-flex items-center justify-center px-6 py-3 border border-transparent text-base font-bold rounded-xl shadow-lg text-indigo-700 bg-white hover:bg-gray-100 transition duration-150 ease-in-out">
-                    <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19V6l-2 2M15 19V6l2 2m-6 0h4"></path></svg>
-                    Check Now
+                <!-- Placeholder URL for a general emergency resource -->
+                <a href="https://www.ready.gov/kit" target="_blank" class="w-full sm:w-auto inline-flex items-center justify-center px-6 py-3 border border-transparent text-base font-bold rounded-xl shadow-lg text-indigo-700 bg-white hover:bg-gray-100 transition duration-150 ease-in-out">
+                    <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
+                    View Safety Guide
                 </a>
             </div>
         </div>
@@ -358,15 +398,65 @@
             <p>Developed as a community service project by Hartselle students.</p>
             <p class="mt-1">For official emergency information, contact: Morgan County EMA or the City of Hartselle.</p>
             <link rel="manifest" href="manifest.json">
-            <script src="app.js" defer></script>
-
-
         </footer>
     </div>
 
+    <!-- Firebase SDK Imports and Initialization Script -->
+    <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
+        import { getAuth, signInAnonymously, signInWithCustomToken, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
+        import { getFirestore } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
+
+        // Global variables for Firebase
+        let db = null;
+        let auth = null;
+        let currentUserId = 'anonymous';
+        let appId = 'default-app-id';
+
+        // --- Firebase Initialization (Kept simple to ensure setupFilters runs after environment is ready) ---
+
+        async function setupFirebase() {
+            try {
+                // Retrieve global variables
+                const firebaseConfig = typeof __firebase_config !== 'undefined' ? JSON.parse(__firebase_config) : {};
+                appId = typeof __app_id !== 'undefined' ? __app_id : 'default-app-id';
+                const initialAuthToken = typeof __initial_auth_token !== 'undefined' ? __initial_auth_token : null;
+
+                const app = initializeApp(firebaseConfig);
+                db = getFirestore(app);
+                auth = getAuth(app);
+                
+                // Sign in logic
+                if (initialAuthToken) {
+                    await signInWithCustomToken(auth, initialAuthToken);
+                } else {
+                    await signInAnonymously(auth);
+                }
+
+                // Wait for auth state to be confirmed
+                onAuthStateChanged(auth, (user) => {
+                    if (user) {
+                        currentUserId = user.uid;
+                        console.log("Firebase initialized. User ID:", currentUserId);
+                        setupFilters(); 
+                    } else {
+                        currentUserId = 'anonymous-error';
+                        setupFilters();
+                    }
+                });
+
+            } catch (error) {
+                console.error("Fatal Error setting up Firebase:", error);
+                alertMessage("Error setting up application. Geolocation features may be affected.", "error");
+                // Fallback: run filters even if Firebase failed
+                setupFilters(); 
+            }
+        }
+        
+        // Start the application setup
+        window.onload = setupFirebase;
+    </script>
+
 </body>
 </html>
 
-
-</body>
-</html>
