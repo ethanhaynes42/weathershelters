@@ -488,7 +488,7 @@
 
             } catch (error) {
                 console.error("Fatal Error setting up Firebase:", error);
-                alertMessage("Location can be used to find the shelters. ", "error");
+                alertMessage("", "error");
                 // Fallback: run filters even if Firebase failed
                 setupFilters(); 
             }
