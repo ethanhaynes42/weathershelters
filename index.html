@@ -488,7 +488,7 @@
 
             } catch (error) {
                 console.error("Fatal Error setting up Firebase:", error);
-                alertMessage("Error setting up application. Geolocation features may be affected.", "error");
+                alertMessage("Location can be used to find the shelters. ", "error");
                 // Fallback: run filters even if Firebase failed
                 setupFilters(); 
             }
